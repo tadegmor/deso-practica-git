@@ -92,9 +92,38 @@ public class ReservationService {
         
   }
 
-  // Ejercicio 5
+// Ejercicio 5
   public Map<String, List<Reservation>> groupReservationsByCountry(List<Reservation> reservations) {
-    throw new UnsupportedOperationException("Ejercicio 5: implement groupReservationsByCountry");
+    return reservations.stream()
+        .filter(r -> r.getService() != null)
+        .map(r -> {
+            String country = null;
+            TouristService service = r.getService();
+            
+            // utilizamos instanceof con pattern matching para Flight
+            if (service instanceof domain.Flight flight && flight.getArrivalInfo() != null) {
+                country = flight.getArrivalInfo().getCountry(); 
+            } 
+            // o para Accommodation 
+            else if (service instanceof domain.Accommodation acc && acc.getLocation() != null) {
+                country = acc.getLocation().getCountry();
+            }
+            
+            return new Object[] { r, country };
+        })
+        .filter(arr -> arr[1] != null) 
+        // ignoramos las reservas sin pais/ubicacion asignada
+        .collect(Collectors.groupingBy(
+            arr -> (String) arr[1],
+            Collectors.collectingAndThen(
+                Collectors.mapping(arr -> (Reservation) arr[0], Collectors.toList()),
+                list -> {
+                    // Ordenamos las reservas de cada grupo por fecha asc
+                    list.sort(Comparator.comparing(Reservation::getDate));
+                    return list;
+                }
+            )
+        ));
   }
 
   // Ejercicio 7
