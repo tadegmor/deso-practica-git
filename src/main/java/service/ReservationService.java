@@ -1,5 +1,6 @@
 package service;
 
+import domain.Flight;
 import domain.Reservation;
 import domain.TouristService;
 import domain.User;
@@ -138,7 +139,26 @@ public class ReservationService {
           FlightNotFoundException,
           InvalidDateRangeException,
           DataAccessException {
-    throw new UnsupportedOperationException("Ejercicio 7: implement createReservation");
+      User user = userDao.findByUsername(username).orElseThrow(() -> new UserNotFoundException(username));
+      Flight flight = flightDao.findByNumber(flightNumber).orElseThrow(() -> new FlightNotFoundException(flightNumber));
+      if(date == null || date.isBefore(Instant.now())){
+          throw new InvalidDateRangeException("La fecha de la reserva no puede ser nula ni anterior a la fecha actual");
+      }
+      Reservation reservation = new Reservation.Builder()
+              .owner(user)
+              .service(flight)
+              .date(date)
+              .build();
+      try{
+          reservationDao.save(reservation);
+      }
+      catch (DataAccessException e) {
+          throw new DataAccessException("Error al guardar la reserva del usuario " + username + " para el vuelo " + flightNumber, e);
+      }
+
+      return reservation;
+
+
   }
 
   // Ejercicio 8
