@@ -22,6 +22,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ReservationService {
@@ -71,7 +72,14 @@ public class ReservationService {
   public List<Reservation> getReservationsByUser(
       List<Reservation> reservations, String username, UserDao userDao)
       throws UserNotFoundException, DataAccessException {
-    throw new UnsupportedOperationException("Ejercicio 1: implement getReservationsByUser");
+
+   User user = userDao.findByUsername(username).orElseThrow(() -> new UserNotFoundException("No se encontro un usuario con el nombre 'username'"));
+
+    return reservations.stream()
+            .filter(r -> r.getOwner().getUsername().equals(username))
+            .sorted(Comparator.comparingDouble(Reservation::calculatePrice).reversed())
+            .collect(Collectors.toList());
+
   }
 
   // Ejercicio 3
